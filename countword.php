@@ -3,6 +3,7 @@ include_once "time.php";
 
 echo "<h3> Counting occurrence of a word in a String :: Benchmarking of PHP functions </h3><BR /><BR />";
 
+$array = array();
 
 $str = "I have three PHP books, first one is 'PHP Tastes Good', 
 next is 'PHP in your breakfast' and the last one is 'PHP Nightmare'";
@@ -14,7 +15,7 @@ for ($i=0; $i<10000; $i++)
     $cnt = count(split("PHP",$str))-1;
 }
 $end = Time::microtime_float();
-
+array_push($array, $end-$start);
 echo "Count by Split+Count took : ".($end-$start)." Seconds<BR />";
 
 $start = Time::microtime_float();
@@ -27,6 +28,7 @@ for ($i=0; $i<10000; $i++)
 
 }
 $end = Time::microtime_float();
+array_push($array, $end-$start);
 echo "Count by Preg_Match+Count took : ".($end-$start)." Seconds<BR />";
 
 $start = Time::microtime_float();
@@ -38,7 +40,7 @@ for ($i=0; $i<10000; $i++)
     //echo $cnt;
 }
 $end = Time::microtime_float();
-
+array_push($array, $end-$start);
 echo "Count by str_replace took : ".($end-$start)." Seconds<BR />";
 
 $start = Time::microtime_float();
@@ -50,6 +52,7 @@ for ($i=0; $i<10000; $i++)
     //echo $cnt;
 }
 $end = Time::microtime_float();
+array_push($array, $end-$start);
 echo "Count By str_ireplace took : ".($end-$start)." Seconds<BR />";
 
 $start = Time::microtime_float();
@@ -61,7 +64,7 @@ for ($i=0; $i<10000; $i++)
     //echo $cnt;
 }
 $end = Time::microtime_float();
-
+array_push($array, $end-$start);
 echo "Count By Explode+Count took : ".($end-$start)." Seconds<BR />";
 
 $start = Time::microtime_float();
@@ -75,6 +78,7 @@ for ($i=0; $i<10000; $i++)
     $cnt = $word_count['php'];
 }
 $end = Time::microtime_float();
+array_push($array, $end-$start);
 echo "Count By Array Functions took : ".($end-$start)." Seconds<BR />";
 
 $start = Time::microtime_float();
@@ -84,7 +88,7 @@ for ($i=0; $i<10000; $i++)
     $cnt = count(preg_split("/PHP/i",$str))-1;
 }
 $end = Time::microtime_float();
-
+array_push($array, $end-$start);
 echo "Count By preg_split+Count took : ".($end-$start)." Seconds<BR />";
 
 $start = Time::microtime_float();
@@ -94,6 +98,10 @@ for ($i=0; $i<10000; $i++)
     $cnt = substr_count($str, "PHP");
 }
 $end = Time::microtime_float();
+array_push($array, $end-$start);
 echo "Count By substr_count took : ".($end-$start)." Seconds<BR />";
+rsort($array);
+//print_r ($array);
+echo "<BR /><BR />Least time required is : " . array_pop($array);
 
 ?>
