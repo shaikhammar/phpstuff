@@ -8,8 +8,6 @@
  * Note: Since there is no concept of threads in php the port 
  * scan process take a long time than it should
  * 
- * Issue: Fixes #2 class.portscanner.php should be a class that can 
- * 		  be used to scan the ports
  */
  
  class PortScanner
@@ -26,9 +24,9 @@
 	private $timeout;	    // The connection timeout, in seconds.
 	private $wait;		    // Time to wait between scanning 
 						    // individual ports, in microseconds
-		
+
 ////////////////////////////////////////////////////////////////////////
-	
+
 	/*
 	 * Class construct to define the ip addresses passed as a string
 	 * seperated by comma or '-' or both.
@@ -39,7 +37,7 @@
 		$this->timeout = 2;
 		$this->wait = 0;
 	}
-		
+
 ////////////////////////////////////////////////////////////////////////
 
 	/*
@@ -51,7 +49,7 @@
 	 * The ports to be scanned on each ip address. 
 	 * 
 	 */
-	 
+
 	public function setports($port_str)
 	{
 		$this->ports = $this->seperatestr($port_str, "PORT");
@@ -67,7 +65,7 @@
 	 * Time in seconds to wait for response from the machine
 	 * 
 	 */
-	 
+
 	public function settimeout($time)
 	{
 		$this->timeout = $time;
@@ -83,12 +81,12 @@
 	 * Time in microseconds to wait for after each scan of a port
 	 * 
 	 */
-	 
+
 	public function setwait($sec, $microsec)
 	{
 		$this->wait = (1000000 * $sec) + $microsec;
 	}
-	
+
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -100,7 +98,7 @@
 	 * Function will call scan() to display the output or to return 
 	 * output array
 	 */
-	
+
 	public function scan_output($display)
 	{
 		$ret = $this->scan();
@@ -117,6 +115,28 @@
 ////////////////////////////////////////////////////////////////////////
 
 	/*
+	 * Function: waitfor()
+	 * 
+	 * Argument: total time to wait in microseconds
+	 *
+	 * Just a delay to wait between 2 port scans
+	 *
+	 */
+	 
+	private function waitfor($time)
+	{
+		$s_time = gettimeofday();
+		do
+		{
+			$e_time = gettimeofday();
+			$timePassed = 1000000 * ($e_time['sec'] - $s_time['sec']) + 
+						   $e_time['usec'] - $s_time['usec'];
+		}
+		while($timePassed < $time);
+
+////////////////////////////////////////////////////////////////////////
+
+	/*
 	 * Function: display()
 	 * 
 	 * Argument: scan array
@@ -124,26 +144,26 @@
 	 * To display the result in a tabular format
 	 * 
 	 */
-	 
+
 	private function display($res_arr)
 	{
 		echo "<h4>Port Scan Result</h4>";
-		
+
 		foreach($res_arr as $ip=>$ip_results)
 		{
 			echo $ip . "\n<blockquote>\n";
-			
+
 			foreach($ip_results as $port=>$prt_result)
 			{
 				echo "\t" . $port . " : " . $prt_result['pname'] . " : ";
-				
+
 				echo $prt_result['status'] . "<br />\n";
 			}
-			
+
 			echo "</blockquote>\n\n";
 		}
 	}
-	 
+
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -153,7 +173,7 @@
 	 * Scan and store the result in an array of specific format
 	 * 
 	 */
-	 
+
 	private function scan()
 	{
 		foreach($this->ip_addresses as $ip_address)
@@ -170,7 +190,7 @@
 				{
 					$sock = fsockopen($ip_add, $port, 
 									  $errno, $errstr, $this->timeout);
-				
+
 					if($sock)
 					{
 						$status = "open";
@@ -179,7 +199,7 @@
 					{
 						$status = $errstr;
 					}
-				
+
 					$results["$ip_address"]["$port"]["pname"] = "$prt_name";
 					$results["$ip_address"]["$port"]["status"] = "$status";
 				}
@@ -189,13 +209,13 @@
 					$results["$ip_address"]["$port"]["status"] = "$ip_add";
 				}
 			}
-			
-			//$this->waitfor($this->wait);
-			
+
+			$this->waitfor($this->wait);
+
 		}
-		
+
 		return $results;
-		
+
 	}
 
 ////////////////////////////////////////////////////////////////////////
@@ -209,7 +229,7 @@
 	 * if hostname: convert to ip address
 	 * 
 	 */
-	
+
 	private function checkandcleanip($ip_add)
 	{
 		if(preg_match("\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", $ip_add))
@@ -233,7 +253,7 @@
 	}
 
 ////////////////////////////////////////////////////////////////////////
-	
+
 	/*
 	 * Function: seperatestr()
 	 * 
@@ -243,15 +263,15 @@
 	 * of ip addresses or port numbers
 	 * 
 	 */
-	 
+
 	private function seperatestr($string, $type)
 	{
 		$sep_arr = explode(",", $string);
-		
+
 		switch($type)
 		{
 			case "IP":
-			
+
 			if(count($sep_arr) == 1)
 			{
 				return $sep_arr;
@@ -271,10 +291,10 @@
 						else
 						{
 							$range_arr = explode("-", $ip);
-							
+
 							$start  = ip2long($range_arr[0]);
 							$end = ip2long($range_arr[1]);
-						
+
 							for($i = $start; $i <= $end; $i++)
 							{
 								array_push($ip_arr, long2ip($i));
@@ -286,13 +306,13 @@
 						array_push($ip_arr, $ip);
 					}
 				}
-				
+
 				return $ip_arr;
 				break;
 			}
-						
+
 			case "PORT":
-				
+
 			if(count($sep_arr) == 1)
 			{
 				return $sep_arr;
@@ -306,10 +326,10 @@
 					if(strpos($prt, "-") !== false)
 					{
 						$range_arr = explode("-", $prt);
-						
+
 						$start  = $range_arr[0];
 						$end = $range_arr[1];
-						
+
 						for($i = $start; $i <= $end; $i++)
 						{
 							array_push($prt_arr, $i);
@@ -320,7 +340,7 @@
 						array_push($prt_arr, $prt);
 					}
 				}
-				
+
 				return $prt_arr;
 				break;
 			}
@@ -331,7 +351,7 @@
 			exit;*/
 		}	
 	}
-		
+
 ////////////////////////////////////////////////////////////////////////
 }
 /*
@@ -358,10 +378,8 @@ $prts = "80,3306,30-32";
 
 $portscanner = new PortScanner($ips);
 $portscanner->setports($prts);
-
-//$result = 
+$portscanner->settimeout("20");
+$portscanner->setwait("0", "30");
 $portscanner->scan_output(true);
-
-//print_r($result);
 
 ?>
